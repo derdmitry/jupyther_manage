@@ -119,5 +119,5 @@ STATIC_URL = '/static/'
 # Docker
 
 CERTS = os.path.join(os.path.expanduser('~'), '.docker', 'machine', 'machines', 'default')
-DOCKER_URL = 'https://192.168.99.100:2376'
+DOCKER_URL = 'https://localhost:2376'
 DEFAULT_IMAGE = 'morpheuz/jupyter-notebook-minimal'

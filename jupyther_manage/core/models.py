@@ -8,7 +8,7 @@ from django.db import models
 
 
 class DockerConainer(models.Model):
-    docker_id = models.CharField(max_length=64)
+    docker_id = models.CharField(max_length=64, blank=True)
     docker_user = models.CharField(max_length=64)
     image = models.CharField(max_length=255, default=settings.DEFAULT_IMAGE)
     address = models.CharField(max_length=255, blank=True)

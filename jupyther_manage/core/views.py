@@ -1,7 +1,3 @@
-from os import path
-
-import docker.tls as tls
-from django.conf import settings
 from django.shortcuts import get_object_or_404
 from docker import Client
 from rest_framework import viewsets
@@ -10,12 +6,7 @@ from rest_framework.response import Response
 from core.models import DockerConainer
 from core.serializers import DockerContainerSerializer
 
-tls_config = tls.TLSConfig(
-    client_cert=(path.join(settings.CERTS, 'cert.pem'), path.join(settings.CERTS, 'key.pem')),
-    ca_cert=path.join(settings.CERTS, 'ca.pem'),
-    verify=True
-)
-client = Client(base_url=settings.DOCKER_URL, tls=tls_config)
+client = Client()
 
 
 class DockerContainerViewSet(viewsets.ModelViewSet):
@@ -35,9 +26,9 @@ class DockerContainerViewSet(viewsets.ModelViewSet):
 
     def create(self, request):
         print request.POST
-        serializer = DockerContainerSerializer(request.POST)
+        serializer = DockerContainerSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
         container = serializer.save()
-
         docker_container = client.create_container(image=container.image)
         container.docker_id = docker_container[u'Id']
         container.save()

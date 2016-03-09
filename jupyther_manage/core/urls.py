@@ -6,6 +6,5 @@ from views import DockerContainerViewSet
 router = routers.SimpleRouter()
 router.register(r'containers', DockerContainerViewSet)
 urlpatterns = (
-    '',
     url(r'^', include(router.urls)),
 )
