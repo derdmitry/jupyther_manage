@@ -22,7 +22,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'i@goug3h!r%qdwk)-lf&_616(--x$lplf2b*xdltr1)g5vqv*q'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'httpproxy',
     'core'
 ]
 
@@ -116,8 +117,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# Docker
-
-CERTS = os.path.join(os.path.expanduser('~'), '.docker', 'machine', 'machines', 'default')
-DOCKER_URL = 'https://localhost:2376'
-DEFAULT_IMAGE = 'morpheuz/jupyter-notebook-minimal'
+try:
+    from local_settings import *
+except ImportError:
+    pass
