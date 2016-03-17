@@ -1,7 +1,8 @@
 import re
 import urllib
 
-from django.http import HttpResponse
+from django.core.urlresolvers import resolve
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic import View
 from docker import Client
@@ -40,7 +41,7 @@ class DockerContainerViewSet(viewsets.ModelViewSet):
         docker_container = client.create_container(image=container.image)
         container.docker_id = docker_container[u'Id']
         container.save()
-        client.start(docker_container)
+        client.start(docker_container, port_bindings='8888:%s' % container.port)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status='201', headers=headers)
 
@@ -58,8 +59,8 @@ class Proxy(View):
     base_url = '172.17.0.2:8888'
     rewrite = False
 
-    def dispatch(self, request, url, *args, **kwargs):
-        self.url = url
+    def dispatch(self, request, *args, **kwargs):
+        self.url = request.path.replace(self.base_url, '')
         self.original_request_path = request.path
         request = self.normalize_request(request)
 
@@ -115,4 +116,21 @@ class Proxy(View):
             response_body = e.read()
             status = e.code
         return HttpResponse(response_body, status=status,
+                            content_type=response.headers['content-type'])
+
+
+def proxy_rewrite(request):
+    if 'HTTP_REFERER' in request.META:
+        if 'proxy' in request.META['HTTP_REFERER']:
+            return HttpResponseRedirect(request.path)
+    return HttpResponse('not ok')
+
+
+def simple_proxy(request, docker_id):
+    container = DockerConainer.objects.get_or_404(id=docker_id)
+    path = request.path.replace(resolve('proxy-view', docker_id=docker_id), '')
+    response = urllib.urlopen('http://172.17.0.2:%s/%s' % (container.port, path))
+    response_body = response.read()
+    status = response.getcode()
+    return HttpResponse(response_body, status=status,
                             content_type=response.headers['content-type'])
