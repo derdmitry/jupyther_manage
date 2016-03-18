@@ -2,7 +2,7 @@ import re
 import urllib
 
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.views.generic import View
 from docker import Client
@@ -120,10 +120,18 @@ class Proxy(View):
                             content_type=response.headers['content-type'])
 
 
-def proxy_rewrite(request):
-    if 'HTTP_REFERER' in request.META:
-        if 'proxy' in request.META['HTTP_REFERER']:
-            return HttpResponseRedirect(request.META['HTTP_REFERER'] + '?path=' + request.path)
+def proxy_rewrite(request, docker_id, proxy_path):
+    container = DockerConainer.objects.get(id=docker_id)
+    if proxy_path:
+        proxy_url = 'http://127.0.0.1:%s/%s' % (container.port, proxy_path)
+    else:
+        proxy_url = 'http://127.0.0.1:%s/' % container.port
+    response = urllib.urlopen(proxy_url)
+    response_body = response.read()
+    status = response.getcode()
+    return HttpResponse(response_body, status=status,
+                        content_type=response.headers['content-type'])
+
     return HttpResponse('not ok')
 
 
