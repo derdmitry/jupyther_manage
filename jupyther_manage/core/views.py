@@ -131,9 +131,9 @@ def simple_proxy(request, docker_id, proxy_path=None):
     container = DockerConainer.objects.get(id=docker_id)
     path = request.path.replace(reverse('core:proxy-view', kwargs={'docker_id': docker_id}), '')
     if proxy_path:
-        proxy_url = 'http://172.17.0.2:%s/%s' % (container.port, proxy_path)
+        proxy_url = 'http://127.0.0.1:%s/%s' % (container.port, proxy_path)
     else:
-        proxy_url = 'http://172.17.0.2:%s/' % container.port
+        proxy_url = 'http://127.0.0.1:%s/' % container.port
     response = urllib.urlopen(proxy_url)
     response_body = response.read()
     status = response.getcode()
