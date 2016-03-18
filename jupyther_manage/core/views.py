@@ -1,7 +1,7 @@
 import re
 import urllib
 
-from django.core.urlresolvers import resolve
+from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.views.generic import View
@@ -41,7 +41,8 @@ class DockerContainerViewSet(viewsets.ModelViewSet):
         docker_container = client.create_container(image=container.image)
         container.docker_id = docker_container[u'Id']
         container.save()
-        client.start(docker_container, port_bindings='8888:%s' % container.port)
+        port = {8888: container.port}
+        client.start(docker_container, port_bindings=port)
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status='201', headers=headers)
 
@@ -122,14 +123,18 @@ class Proxy(View):
 def proxy_rewrite(request):
     if 'HTTP_REFERER' in request.META:
         if 'proxy' in request.META['HTTP_REFERER']:
-            return HttpResponseRedirect(request.path)
+            return HttpResponseRedirect(request.META['HTTP_REFERER'] + '?path=' + request.path)
     return HttpResponse('not ok')
 
 
-def simple_proxy(request, docker_id):
-    container = DockerConainer.objects.get_or_404(id=docker_id)
-    path = request.path.replace(resolve('proxy-view', docker_id=docker_id), '')
-    response = urllib.urlopen('http://172.17.0.2:%s/%s' % (container.port, path))
+def simple_proxy(request, docker_id, proxy_path=None):
+    container = DockerConainer.objects.get(id=docker_id)
+    path = request.path.replace(reverse('core:proxy-view', kwargs={'docker_id': docker_id}), '')
+    if proxy_path:
+        proxy_url = 'http://172.17.0.2:%s/%s' % (container.port, proxy_path)
+    else:
+        proxy_url = 'http://172.17.0.2:%s/' % container.port
+    response = urllib.urlopen(proxy_url)
     response_body = response.read()
     status = response.getcode()
     return HttpResponse(response_body, status=status,

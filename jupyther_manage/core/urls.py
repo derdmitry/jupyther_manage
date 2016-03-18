@@ -8,4 +8,6 @@ router.register(r'containers', DockerContainerViewSet)
 urlpatterns = (
     url(r'^', include(router.urls)),
     url(r'^proxy/(?P<docker_id>\d+)/$', simple_proxy, name='proxy-view'),
+    url(r'^proxy/(?P<docker_id>\d+)/path/(?P<proxy_path>.*)$', simple_proxy, name='proxy-path'),
+
 )

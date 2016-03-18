@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    #    'django.contrib.staticfiles',
+    'django.contrib.staticfiles',
     'rest_framework',
     'httpproxy',
     'core'
@@ -49,6 +49,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'core.middleware.UrlRedirectMiddleware',
 ]
 
 ROOT_URLCONF = 'jupyther_manage.urls'
